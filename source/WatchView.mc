@@ -26,8 +26,11 @@ class WatchView extends WatchUi.WatchFace {
     function onUpdate(dc as Dc) as Void {
         var width = dc.getWidth().toFloat() as Float;
         var clockTime = System.getClockTime() as System.ClockTime;
+        var timeShort = Gregorian.info(Time.now(), Time.FORMAT_SHORT) as Gregorian.Info;
+        var timeMedium = Gregorian.info(Time.now(), Time.FORMAT_MEDIUM) as Gregorian.Info;
 
         drawTime(clockTime);
+        drawDate(timeShort, timeMedium);
         
         // Call the parent onUpdate function to redraw the layout
         View.onUpdate(dc);
@@ -64,5 +67,13 @@ class WatchView extends WatchUi.WatchFace {
 
         var view = View.findDrawableById("TimeLabel") as Text;
         view.setText(timeString);
+    }
+
+    private function drawDate(timeShort as Gregorian.Info, timeMedium as Gregorian.Info) as Void {
+        drawLabel("DateLabel").setText(Lang.format("$1$ $2$ $3$ $4$", [timeMedium.day_of_week.toUpper(), timeShort.day, timeMedium.month.toUpper(), timeShort.year % 100]));        
+    }
+
+    private function drawLabel(name as String) as Toybox.WatchUi.Text {
+        return (View.findDrawableById(name) as Toybox.WatchUi.Text);
     }
 }
