@@ -5,6 +5,10 @@
     <label id="TempLabel" x="36%" y="16%" font="@Fonts.custom24" justification="Graphics.TEXT_JUSTIFY_LEFT" />
     <label id="TempFeelLabel" x="36%" y="23%" font="@Fonts.custom24" color="Graphics.COLOR_LT_GRAY" justification="Graphics.TEXT_JUSTIFY_LEFT" />
 
+    <label id="WindText" x="63%" y="13%" text="WIND" font="@Fonts.customLabel" color="Graphics.COLOR_LT_GRAY" justification="Graphics.TEXT_JUSTIFY_CENTER" />
+    <label id="WindDirLabel" x="66%" y="16%" font="@Fonts.custom24" justification="Graphics.TEXT_JUSTIFY_LEFT" />
+    <label id="WindSpeedLabel" x="66%" y="23%" font="@Fonts.custom24" justification="Graphics.TEXT_JUSTIFY_LEFT" />
+
     <label id="TimeLabel" x="center" y="30%" font="@Fonts.custom96" justification="Graphics.TEXT_JUSTIFY_CENTER" color="Graphics.COLOR_WHITE" />
     <label id="DateLabel" x="center" y="56%" font="@Fonts.custom24" justification="Graphics.TEXT_JUSTIFY_CENTER" color="Graphics.COLOR_LT_GRAY" />
 

@@ -41,6 +41,7 @@ class WatchView extends WatchUi.WatchFace {
         drawHeartRate();
         drawBodyBattery();
         drawTemperature(weatherInfo);
+        drawWind(weatherInfo);
         
         // Call the parent onUpdate function to redraw the layout
         View.onUpdate(dc);
@@ -130,6 +131,45 @@ class WatchView extends WatchUi.WatchFace {
             drawLabel("TempLabel").setText(value + "°");
             drawLabel("TempFeelLabel").setText(value + "°");
         }
+    }
+
+    private function drawWind(weatherInfo as Weather.CurrentConditions) as Void {
+        var value = "-" as String;
+        if ((Toybox has :Weather) && (Weather has :CurrentConditions)) {
+            var condition = weatherInfo as Weather.CurrentConditions;
+            if (condition != null) {
+                drawCardinalDirection(condition);
+                drawLabel("WindSpeedLabel").setText((condition.windSpeed * 3.6).format("%d"));
+            }
+        } else {
+            drawLabel("WindDirLabel").setText(value);
+            drawLabel("WindSpeedLabel").setText(value);
+        }
+    }
+
+    private function drawCardinalDirection(condition as Weather.CurrentConditions) as Void {
+        var direction = condition.windBearing as Number;
+        var windDirection = "-";
+        if ( direction >= 335 && direction <= 360 || direction >= 0 && direction < 25 ) {
+            windDirection = "N";
+        } else if ( direction >= 25 && direction < 65 ) {
+            windDirection = "NE";
+        } else if ( direction >= 65 && direction < 115 ) {
+            windDirection = "E";
+        } else if ( direction >= 115 && direction < 155 ) {
+            windDirection = "SE";
+        } else if ( direction >= 155 && direction < 205 ) {
+            windDirection = "S";
+        } else if ( direction >= 205 && direction < 245 ) {
+            windDirection = "SW";
+        } else if ( direction >= 245 && direction < 295 ) {
+            windDirection = "W";
+        } else if ( direction >= 295 && direction < 335 ) {
+            windDirection = "NW";
+        } else {
+            windDirection = "?";
+        }
+        drawLabel("WindDirLabel").setText(windDirection);
     }
 
     private function drawLabel(name as String) as Toybox.WatchUi.Text {
