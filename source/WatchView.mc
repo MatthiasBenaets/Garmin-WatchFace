@@ -34,6 +34,7 @@ class WatchView extends WatchUi.WatchFace {
         drawTime(clockTime);
         drawDate(timeShort, timeMedium);
         drawSteps(activityInfo);
+        drawCalories(activityInfo);
         
         // Call the parent onUpdate function to redraw the layout
         View.onUpdate(dc);
@@ -80,6 +81,10 @@ class WatchView extends WatchUi.WatchFace {
         drawLabel("StepsLabel").setText(activityInfo.steps.format("%d"));
     }
 
+    private function drawCalories(activityInfo as ActivityMonitor.Info) as Void {
+        drawLabel("CaloriesLabel").setText(activityInfo.calories.format("%d"));
+    }
+    
     private function drawLabel(name as String) as Toybox.WatchUi.Text {
         return (View.findDrawableById(name) as Toybox.WatchUi.Text);
     }
