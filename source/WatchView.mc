@@ -6,6 +6,7 @@ import Toybox.WatchUi;
 import Toybox.Time.Gregorian;
 import Toybox.ActivityMonitor;
 import Toybox.SensorHistory;
+import Toybox.Weather;
 
 class WatchView extends WatchUi.WatchFace {
 
@@ -31,6 +32,7 @@ class WatchView extends WatchUi.WatchFace {
         var timeShort = Gregorian.info(Time.now(), Time.FORMAT_SHORT) as Gregorian.Info;
         var timeMedium = Gregorian.info(Time.now(), Time.FORMAT_MEDIUM) as Gregorian.Info;
         var activityInfo = ActivityMonitor.getInfo() as ActivityMonitor.Info;
+        var weatherInfo = Weather.getCurrentConditions() as Weather.CurrentConditions;
 
         drawTime(clockTime);
         drawDate(timeShort, timeMedium);
@@ -38,6 +40,7 @@ class WatchView extends WatchUi.WatchFace {
         drawCalories(activityInfo);
         drawHeartRate();
         drawBodyBattery();
+        drawTemperature(weatherInfo);
         
         // Call the parent onUpdate function to redraw the layout
         View.onUpdate(dc);
@@ -104,7 +107,7 @@ class WatchView extends WatchUi.WatchFace {
         drawLabel("HeartRateLabel").setText(value);
     }
 
-    private function drawBodyBattery() as Void{
+    private function drawBodyBattery() as Void {
         var value = "-" as String;
         if ((Toybox has :SensorHistory) && (SensorHistory has :getBodyBatteryHistory)) {
             var sample = Toybox.SensorHistory.getBodyBatteryHistory({}).next() as SensorHistory.SensorSample or Null;
@@ -113,6 +116,20 @@ class WatchView extends WatchUi.WatchFace {
             }
         }
         drawLabel("BodyLabel").setText(value);
+    }
+
+    private function drawTemperature(weatherInfo as Weather.CurrentConditions) as Void {
+        var value = "-" as String;
+        if ((Toybox has :Weather) && (Weather has :CurrentConditions)) {
+            var condition = weatherInfo as Weather.CurrentConditions;
+            if (condition != null) {
+                drawLabel("TempLabel").setText(condition.temperature.format("%d") + "°");
+                drawLabel("TempFeelLabel").setText(condition.feelsLikeTemperature.format("%d") + "°"); 
+            }
+        } else {
+            drawLabel("TempLabel").setText(value + "°");
+            drawLabel("TempFeelLabel").setText(value + "°");
+        }
     }
 
     private function drawLabel(name as String) as Toybox.WatchUi.Text {

@@ -1,5 +1,10 @@
 <layout id="WatchFace">
     <drawable class="Background" />
+
+    <label id="TempText" x="33%" y="13%" text="TEMP" font="@Fonts.customLabel" color="Graphics.COLOR_LT_GRAY" justification="Graphics.TEXT_JUSTIFY_CENTER" />
+    <label id="TempLabel" x="36%" y="16%" font="@Fonts.custom24" justification="Graphics.TEXT_JUSTIFY_LEFT" />
+    <label id="TempFeelLabel" x="36%" y="23%" font="@Fonts.custom24" color="Graphics.COLOR_LT_GRAY" justification="Graphics.TEXT_JUSTIFY_LEFT" />
+
     <label id="TimeLabel" x="center" y="30%" font="@Fonts.custom96" justification="Graphics.TEXT_JUSTIFY_CENTER" color="Graphics.COLOR_WHITE" />
     <label id="DateLabel" x="center" y="56%" font="@Fonts.custom24" justification="Graphics.TEXT_JUSTIFY_CENTER" color="Graphics.COLOR_LT_GRAY" />
 
