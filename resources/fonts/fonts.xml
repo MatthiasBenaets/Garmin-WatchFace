@@ -1,0 +1,8 @@
+<fonts>
+    <font id="custom16" filename="custom16/custom16.fnt" antialias="true"/>
+    <font id="custom24" filename="custom24/custom24.fnt" antialias="true"/>
+    <font id="custom32" filename="custom32/custom32.fnt" antialias="true"/>
+    <font id="custom64" filename="custom64/custom64.fnt" antialias="true"/>
+    <font id="custom96" filename="custom96/custom96.fnt" antialias="true"/>
+    <font id="customLabel" filename="customLabel/customLabel.fnt" antialias="true"/>
+</fonts>
