@@ -4,6 +4,7 @@ import Toybox.Lang;
 import Toybox.System;
 import Toybox.WatchUi;
 import Toybox.Time.Gregorian;
+import Toybox.ActivityMonitor;
 
 class WatchView extends WatchUi.WatchFace {
 
@@ -28,9 +29,11 @@ class WatchView extends WatchUi.WatchFace {
         var clockTime = System.getClockTime() as System.ClockTime;
         var timeShort = Gregorian.info(Time.now(), Time.FORMAT_SHORT) as Gregorian.Info;
         var timeMedium = Gregorian.info(Time.now(), Time.FORMAT_MEDIUM) as Gregorian.Info;
+        var activityInfo = ActivityMonitor.getInfo() as ActivityMonitor.Info;
 
         drawTime(clockTime);
         drawDate(timeShort, timeMedium);
+        drawSteps(activityInfo);
         
         // Call the parent onUpdate function to redraw the layout
         View.onUpdate(dc);
@@ -71,6 +74,10 @@ class WatchView extends WatchUi.WatchFace {
 
     private function drawDate(timeShort as Gregorian.Info, timeMedium as Gregorian.Info) as Void {
         drawLabel("DateLabel").setText(Lang.format("$1$ $2$ $3$ $4$", [timeMedium.day_of_week.toUpper(), timeShort.day, timeMedium.month.toUpper(), timeShort.year % 100]));        
+    }
+
+    private function drawSteps(activityInfo as ActivityMonitor.Info) as Void {
+        drawLabel("StepsLabel").setText(activityInfo.steps.format("%d"));
     }
 
     private function drawLabel(name as String) as Toybox.WatchUi.Text {
