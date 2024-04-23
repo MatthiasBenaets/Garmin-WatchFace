@@ -35,6 +35,7 @@ class WatchView extends WatchUi.WatchFace {
         drawDate(timeShort, timeMedium);
         drawSteps(activityInfo);
         drawCalories(activityInfo);
+        drawHeartRate();
         
         // Call the parent onUpdate function to redraw the layout
         View.onUpdate(dc);
@@ -85,6 +86,22 @@ class WatchView extends WatchUi.WatchFace {
         drawLabel("CaloriesLabel").setText(activityInfo.calories.format("%d"));
     }
     
+    private function drawHeartRate() as Void {
+        var value = "-" as String;
+        if (ActivityMonitor has :getHeartRateHistory) {
+            var sample = Activity.getActivityInfo().currentHeartRate as Number or Null;
+            if (sample != null) {
+                value = sample.format("%d") as String;
+            } else {
+                sample = ActivityMonitor.getHeartRateHistory(1, true).next() as ActivityMonitor.HeartRateSample;
+                if ((sample != null) && (sample.heartRate != ActivityMonitor.INVALID_HR_SAMPLE)) {
+                    value = sample.heartRate.format("%d") as String;
+                }
+            }
+        }
+        drawLabel("HeartRateLabel").setText(value);
+    }
+
     private function drawLabel(name as String) as Toybox.WatchUi.Text {
         return (View.findDrawableById(name) as Toybox.WatchUi.Text);
     }
