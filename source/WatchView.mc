@@ -5,6 +5,7 @@ import Toybox.System;
 import Toybox.WatchUi;
 import Toybox.Time.Gregorian;
 import Toybox.ActivityMonitor;
+import Toybox.SensorHistory;
 
 class WatchView extends WatchUi.WatchFace {
 
@@ -36,6 +37,7 @@ class WatchView extends WatchUi.WatchFace {
         drawSteps(activityInfo);
         drawCalories(activityInfo);
         drawHeartRate();
+        drawBodyBattery();
         
         // Call the parent onUpdate function to redraw the layout
         View.onUpdate(dc);
@@ -100,6 +102,17 @@ class WatchView extends WatchUi.WatchFace {
             }
         }
         drawLabel("HeartRateLabel").setText(value);
+    }
+
+    private function drawBodyBattery() as Void{
+        var value = "-" as String;
+        if ((Toybox has :SensorHistory) && (SensorHistory has :getBodyBatteryHistory)) {
+            var sample = Toybox.SensorHistory.getBodyBatteryHistory({}).next() as SensorHistory.SensorSample or Null;
+            if (sample != null) {
+                value = sample.data.format("%d") as String;
+            }
+        }
+        drawLabel("BodyLabel").setText(value);
     }
 
     private function drawLabel(name as String) as Toybox.WatchUi.Text {

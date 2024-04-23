@@ -8,6 +8,8 @@
     <label id="StepsText" x="65%" y="68%" text="STEPS" font="@Fonts.customLabel" color="Graphics.COLOR_LT_GRAY" justification="Graphics.TEXT_JUSTIFY_CENTER" />
     <label id="StepsLabel" x="65%" y="70%" font="@Fonts.custom24" justification="Graphics.TEXT_JUSTIFY_CENTER" />
 
+    <label id="BodyText" x="35%" y="78%" text="BODY" font="@Fonts.customLabel" color="Graphics.COLOR_LT_GRAY" justification="Graphics.TEXT_JUSTIFY_CENTER" />
+    <label id="BodyLabel" x="35%" y="80%" font="@Fonts.custom24" justification="Graphics.TEXT_JUSTIFY_CENTER" />
     <label id="HeartRateText" x="65%" y="78%" text="HR" font="@Fonts.customLabel" color="Graphics.COLOR_LT_GRAY" justification="Graphics.TEXT_JUSTIFY_CENTER" />
     <label id="HeartRateLabel" x="65%" y="80%" font="@Fonts.custom24" justification="Graphics.TEXT_JUSTIFY_CENTER" />
 </layout>
