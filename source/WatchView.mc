@@ -82,6 +82,7 @@ class WatchView extends WatchUi.WatchFace {
         // Draw bitmap after onUpdate
         drawWindArrow(dc, width, weatherInfo, arrowIcon);
         drawWeather(dc, width, weatherInfo, currentTime, sunriseTime, sunsetTime, weatherIcon);
+        drawSunEvent(dc, width, currentTime, sunriseTime, sunsetTime);
         drawBattery(dc, width, system);
     }
 
@@ -293,6 +294,22 @@ class WatchView extends WatchUi.WatchFace {
             :bitmapHeight => 30,
             :transform => transform,
         });
+    }
+
+    private function drawSunEvent(dc as Dc, width as Float, currentTime as Time.Moment, sunriseTime as Time.Moment, sunsetTime as Time.Moment) {
+        var sunriseText = Gregorian.info(sunriseTime, Time.FORMAT_SHORT) as Gregorian.Info;
+        var sunsetText = Gregorian.info(sunsetTime, Time.FORMAT_SHORT) as Gregorian.Info;
+
+        sunriseText = Lang.format("$1$$2$", [sunriseText.hour.format("%02d"), sunriseText.min.format("%02d")]) as String;
+        sunsetText = Lang.format("$1$$2$", [sunsetText.hour.format("%02d"), sunsetText.min.format("%02d")]) as String;
+
+        if (sunriseTime.lessThan(currentTime) && sunsetTime.greaterThan(currentTime)) {
+            drawGauge(dc, width, 10, 4, 1, sunriseTime.value().toFloat(), sunsetTime.value().toFloat(), currentTime.value().toFloat(), [sunriseText, sunsetText, ""]);
+        } else if ( sunsetTime.lessThan(currentTime)) {
+            drawGauge(dc, width, 10, 4, 1, sunsetTime.value().toFloat(), sunriseTime.value().toFloat() + 86400, currentTime.value().toFloat(), [sunsetText, sunriseText, ""]);
+        } else {
+            drawGauge(dc, width, 10, 4, 1, sunsetTime.value().toFloat() - 86400, sunriseTime.value().toFloat(), currentTime.value().toFloat(), [sunsetText, sunriseText, ""]);
+        }
     }
 
     private function drawBattery(dc as Dc, width as Float, system as System.Stats) {
