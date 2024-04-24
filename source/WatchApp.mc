@@ -26,6 +26,10 @@ class WatchApp extends Application.AppBase {
         WatchUi.requestUpdate();
     }
 
+    function getSettingsView() {
+        return [new WatchSettingsMenu(),new WatchSettingsMenuDelegate()];
+    } 
+
 }
 
 function getApp() as WatchApp {
