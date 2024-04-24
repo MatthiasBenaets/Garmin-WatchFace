@@ -11,7 +11,8 @@ import Toybox.Weather;
 import Toybox.Position;
 
 class WatchView extends WatchUi.WatchFace {
-
+    
+    var custom16 = null;
     var custom32 = null;
     var arrowIcon = null;
     var weatherIcon = null;
@@ -27,6 +28,7 @@ class WatchView extends WatchUi.WatchFace {
 
     // Load your resources here
     function onLayout(dc as Dc) as Void {
+        custom16 = WatchUi.loadResource(Rez.Fonts.custom16);
         custom32 = WatchUi.loadResource(Rez.Fonts.custom32);
         weatherIcon = WatchUi.loadResource(Rez.Drawables.Weather) as Graphics.BitmapType;
         arrowIcon = WatchUi.loadResource(Rez.Drawables.Arrow) as Graphics.BitmapType;
@@ -42,6 +44,7 @@ class WatchView extends WatchUi.WatchFace {
     // Update the view
     function onUpdate(dc as Dc) as Void {
         var width = dc.getWidth().toFloat() as Float;
+        var system = System.getSystemStats() as System.Stats;
         var clockTime = System.getClockTime() as System.ClockTime;
         var timeShort = Gregorian.info(Time.now(), Time.FORMAT_SHORT) as Gregorian.Info;
         var timeMedium = Gregorian.info(Time.now(), Time.FORMAT_MEDIUM) as Gregorian.Info;
@@ -79,6 +82,7 @@ class WatchView extends WatchUi.WatchFace {
         // Draw bitmap after onUpdate
         drawWindArrow(dc, width, weatherInfo, arrowIcon);
         drawWeather(dc, width, weatherInfo, currentTime, sunriseTime, sunsetTime, weatherIcon);
+        drawBattery(dc, width, system);
     }
 
     // Called when this View is removed from the screen. Save the
@@ -290,4 +294,111 @@ class WatchView extends WatchUi.WatchFace {
             :transform => transform,
         });
     }
+
+    private function drawBattery(dc as Dc, width as Float, system as System.Stats) {
+        var batteryStatus = Lang.format( "$1$% $2$", [ system.battery.format("%2d"), system.batteryInDays.format("%d") + "D" ] );
+        drawGauge(dc, width, 8, 4, 0, 0.0, 100.0, system.battery, ["0", "100", batteryStatus]);
+    }
+
+    private function drawGauge(dc as Dc, width as Float, startHour as Number, hourDuration as Number, direction as Number, startValue as Float, endValue as Float, currValue as Float, labels as Array<String>) as Void {
+        // Direction
+        var arcDirection = null as Graphics.ArcDirection;
+        if (direction == 1) {
+            arcDirection = Graphics.ARC_CLOCKWISE;
+        } else if (direction == 0) {
+            arcDirection = Graphics.ARC_COUNTER_CLOCKWISE;
+        }
+
+        // Overflow
+        if (currValue >= endValue) {
+            currValue = endValue;
+        } else if (currValue <= startValue) {
+            currValue = startValue;
+        }
+
+        // Convert values to arc start and end
+        var arcStart = 90.0 - startHour * 30.0;
+        arcStart = arcStart + 0.001;
+        var arcEnd;
+        if (direction == 0) {
+            arcEnd = arcStart + 30.0 * hourDuration;
+        } else {
+            arcEnd = arcStart - 30.0 * hourDuration;
+        }
+
+        // Compute arc length
+        var arcLengthInDegrees = arcEnd - arcStart;
+        if (arcLengthInDegrees > 180) {
+            if (direction == 1) {
+                arcLengthInDegrees = arcLengthInDegrees-90;
+            } else {
+                arcLengthInDegrees = arcLengthInDegrees;
+            }
+        }
+
+        // Computing end of arc
+        var proportion = (currValue - startValue)/(endValue - startValue);
+        if (proportion == 0) {
+            proportion = 0.01;
+        }
+        var arcEndActual = arcStart + proportion * arcLengthInDegrees;
+        var arcCenter = (arcStart + arcEnd)/2;
+
+        // Compute arc x, y and radius (same for a circular watch)
+        var arcCenterX = width/2;
+        var arcCenterY = arcCenterX;
+        var arcRadius = arcCenterX;
+
+        // Gauge arc
+        dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
+        var thickness = 1;
+        var thicknessSecond = 4;
+        for (var i = thickness; i <= thickness+thicknessSecond; i += 1) {
+            dc.drawArc(arcCenterX-1, arcCenterY, arcRadius-i, arcDirection, arcStart, arcEndActual+0.001);
+        }
+
+        // Gauge value label
+        if (labels[2] != ""){
+            var outerRadius = width / 2;
+            var innerRadius = outerRadius - 9;
+            var textInnerRadius = innerRadius - 12;
+            var angle = arcCenter / 360 * 2 * Math.PI + Math.PI / 2;
+            var x = outerRadius + textInnerRadius * Math.sin(angle);
+            var y = outerRadius + textInnerRadius * Math.cos(angle);
+            dc.drawText(x, y, custom16, labels[2], Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
+        }
+
+        // Background arc
+        dc.setColor(Graphics.COLOR_DK_GRAY, Graphics.COLOR_TRANSPARENT);
+        for (var i = 0; i <= thickness; i += 1) {
+            dc.drawArc(arcCenterX-1, arcCenterY, arcRadius-i, arcDirection, arcStart, arcEnd);
+        }
+
+        // Gauge stoppers/labels
+        drawGaugeStopper(dc, width, [arcStart + 1, arcEnd], [labels[0], labels[1]]);
+    }
+
+    private function drawGaugeStopper(dc as Dc, width as Float, hours as Array<Float>, labels as Array<String>) as Void {
+        var thickness = 9;
+        var outerRadius = width / 2;
+        var innerRadius = outerRadius - 10;
+        var textInnerRadius = innerRadius - 15;
+
+        for (var i = 0; i < hours.size(); i += 1) {
+            var angle = (hours[i]/360.0) * 2 * Math.PI + Math.PI / 2.0;
+            var aX = outerRadius + innerRadius * Math.sin(angle);
+            var aY = outerRadius + innerRadius * Math.cos(angle);
+            var bX = outerRadius + (outerRadius + 10) * Math.sin(angle) + thickness * Math.cos(angle);
+            var bY = outerRadius + (outerRadius + 10) * Math.cos(angle) + thickness * Math.sin(angle);
+            var cX = outerRadius + (outerRadius + 10) * Math.sin(angle) - thickness * Math.cos(angle);
+            var cY = outerRadius + (outerRadius + 10) * Math.cos(angle) - thickness * Math.sin(angle);
+
+            dc.fillPolygon([[aX, aY],[bX, bY],[cX, cY]]);
+
+            var x = outerRadius + textInnerRadius * Math.sin(angle);
+            var y = outerRadius + textInnerRadius * Math.cos(angle);
+            dc.drawText(x, y, custom16, labels[i], Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
+        }
+    }
+
 }
