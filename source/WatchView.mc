@@ -10,12 +10,16 @@ import Toybox.Weather;
 
 class WatchView extends WatchUi.WatchFace {
 
+    var arrowIcon = null;
+    var arrowSize = 25;
+
     function initialize() {
         WatchFace.initialize();
     }
 
     // Load your resources here
     function onLayout(dc as Dc) as Void {
+        arrowIcon = WatchUi.loadResource(Rez.Drawables.Arrow) as Graphics.BitmapType;
         setLayout(Rez.Layouts.WatchFace(dc));
     }
 
@@ -45,6 +49,9 @@ class WatchView extends WatchUi.WatchFace {
         
         // Call the parent onUpdate function to redraw the layout
         View.onUpdate(dc);
+
+        // Draw bitmap after onUpdate
+        drawWindArrow(dc, width, weatherInfo, arrowIcon);
     }
 
     // Called when this View is removed from the screen. Save the
@@ -174,5 +181,16 @@ class WatchView extends WatchUi.WatchFace {
 
     private function drawLabel(name as String) as Toybox.WatchUi.Text {
         return (View.findDrawableById(name) as Toybox.WatchUi.Text);
+    }
+
+    private function drawWindArrow(dc as Dc, width as Float, weatherInfo as Weather.CurrentConditions, arrowIcon as Graphics.BitmapType) as Void {
+        if ((Toybox has :Weather) && (Weather has :CurrentConditions)) {
+            var transform = new Graphics.AffineTransform();
+            var direction = weatherInfo.windBearing as Number;
+            var rotation = 0.0174305556 * direction;
+            transform.rotate(rotation);
+            transform.translate(-arrowSize/2, -arrowSize/2);
+            dc.drawBitmap2(0.59*width, 0.23*width, arrowIcon, { :transform => transform });
+        }
     }
 }
