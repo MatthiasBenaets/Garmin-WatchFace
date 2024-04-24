@@ -3,22 +3,32 @@ import Toybox.Graphics;
 import Toybox.Lang;
 import Toybox.System;
 import Toybox.WatchUi;
+import Toybox.Time;
 import Toybox.Time.Gregorian;
 import Toybox.ActivityMonitor;
 import Toybox.SensorHistory;
 import Toybox.Weather;
+import Toybox.Position;
 
 class WatchView extends WatchUi.WatchFace {
 
+    var custom32 = null;
     var arrowIcon = null;
+    var weatherIcon = null;
     var arrowSize = 25;
 
     function initialize() {
+        var location = Activity.getActivityInfo().currentLocation as Position.Location;
+        if (location != null) {
+            Application.Storage.setValue("location", location.toDegrees() as [Double, Double]);
+        }
         WatchFace.initialize();
     }
 
     // Load your resources here
     function onLayout(dc as Dc) as Void {
+        custom32 = WatchUi.loadResource(Rez.Fonts.custom32);
+        weatherIcon = WatchUi.loadResource(Rez.Drawables.Weather) as Graphics.BitmapType;
         arrowIcon = WatchUi.loadResource(Rez.Drawables.Arrow) as Graphics.BitmapType;
         setLayout(Rez.Layouts.WatchFace(dc));
     }
@@ -37,6 +47,22 @@ class WatchView extends WatchUi.WatchFace {
         var timeMedium = Gregorian.info(Time.now(), Time.FORMAT_MEDIUM) as Gregorian.Info;
         var activityInfo = ActivityMonitor.getInfo() as ActivityMonitor.Info;
         var weatherInfo = Weather.getCurrentConditions() as Weather.CurrentConditions;
+        var location = new Position.Location({
+            :latitude => 50.929391,
+            :longitude => 5.337577,
+            :format => :degrees
+        }) as Position.Location;
+        var locationData = Application.Storage.getValue("location") as [Double, Double];
+        if (locationData != null) {
+            location = new Position.Location({
+                :latitude => locationData[0],
+                :longitude => locationData[1],
+                :format => :degrees
+            }) as Position.Location;
+        }
+        var currentTime = new Time.Moment(Time.now().value()) as Time.Moment;
+        var sunriseTime = Weather.getSunrise(location, currentTime) as Time.Moment;
+        var sunsetTime = Weather.getSunset(location, currentTime) as Time.Moment;
 
         drawTime(clockTime);
         drawDate(timeShort, timeMedium);
@@ -52,6 +78,7 @@ class WatchView extends WatchUi.WatchFace {
 
         // Draw bitmap after onUpdate
         drawWindArrow(dc, width, weatherInfo, arrowIcon);
+        drawWeather(dc, width, weatherInfo, currentTime, sunriseTime, sunsetTime, weatherIcon);
     }
 
     // Called when this View is removed from the screen. Save the
@@ -154,8 +181,8 @@ class WatchView extends WatchUi.WatchFace {
         }
     }
 
-    private function drawCardinalDirection(condition as Weather.CurrentConditions) as Void {
-        var direction = condition.windBearing as Number;
+    private function drawCardinalDirection(weatherInfo as Weather.CurrentConditions) as Void {
+        var direction = weatherInfo.windBearing as Number;
         var windDirection = "-";
         if ( direction >= 335 && direction <= 360 || direction >= 0 && direction < 25 ) {
             windDirection = "N";
@@ -179,6 +206,64 @@ class WatchView extends WatchUi.WatchFace {
         drawLabel("WindDirLabel").setText(windDirection);
     }
 
+    private function drawWeather(dc as Dc, width as Float, weatherInfo as Weather.CurrentConditions, currentTime as Time.Moment, sunriseTime as Time.Moment, sunsetTime as Time.Moment, icon as Graphics.BitmapType) {
+        if ((Toybox has :Weather) && (Weather has :CurrentConditions)) {
+            var currentCondition = weatherInfo.condition as Number;
+            var shift = 30;
+            if (sunriseTime.lessThan(currentTime) && sunsetTime.greaterThan(currentTime)) {
+                shift = 0;
+            }
+            switch (currentCondition) {
+                // Sun & Moon
+                case 0: case 23: case 40: case 52: case 53:
+                    drawWeatherIcon(dc, width, 0+shift, 0, icon);
+                    break;
+                // Cloud
+                case 20:
+                    drawWeatherIcon(dc, width, 0, 90, icon);
+                    break;
+                // Partial Cloud
+                case 1: case 2: case 22:
+                    drawWeatherIcon(dc, width, 0+shift, 30, icon);
+                    break;
+                // Mist
+                case 8: case 9: case 29: case 30: case 31: case 33: case 35: case 37: case 38: case 39:
+                    drawWeatherIcon(dc, width, 0, 180, icon);
+                    break;
+                // Hail
+                case 10: case 49: case 50:
+                    drawWeatherIcon(dc, width, 30, 120, icon);
+                    break;
+                // Rain
+                case 3: case 11: case 13: case 14: case 15: case 24: case 25: case 26: case 31: case 45:
+                    drawWeatherIcon(dc, width, 30, 90, icon);
+                    break;
+                // Partial Rain
+                case 27: case 28:
+                    drawWeatherIcon(dc, width, 0+shift, 60, icon);
+                    break;
+                // Snow
+                case 4: case 7: case 16: case 17: case 18: case 19: case 21: case 34: case 43: case 44: case 46: case 47: case 48: case 51:
+                    drawWeatherIcon(dc, width, 0, 150, icon);
+                    break;
+                // Thunder
+                case 6: case 12: case 32: case 41: case 42:
+                    drawWeatherIcon(dc, width, 0, 120, icon);
+                    break;
+                // Wind
+                case 5: case 36:
+                    drawWeatherIcon(dc, width, 30, 180, icon);
+                    break;
+                // Default
+                default:
+                    drawWeatherIcon(dc, width, 0, 0, icon);
+                    break;
+            }
+        } else {
+            dc.drawText(0.29*width, 0.18*width, custom32, "?", 1);
+        }
+    }
+
     private function drawLabel(name as String) as Toybox.WatchUi.Text {
         return (View.findDrawableById(name) as Toybox.WatchUi.Text);
     }
@@ -192,5 +277,17 @@ class WatchView extends WatchUi.WatchFace {
             transform.translate(-arrowSize/2, -arrowSize/2);
             dc.drawBitmap2(0.59*width, 0.23*width, arrowIcon, { :transform => transform });
         }
+    }
+
+    private function drawWeatherIcon(dc as Dc, width as Float, x as Number, y as Number, icon as BitmapResource) {
+        var transform = new Graphics.AffineTransform();
+        transform.translate(-x.toFloat(), -y.toFloat());
+        dc.drawBitmap2(0.23*width, 0.18*width, icon, {
+            :bitmapX => x,
+            :bitmapY => y,
+            :bitmapWidth => 30,
+            :bitmapHeight => 30,
+            :transform => transform,
+        });
     }
 }
