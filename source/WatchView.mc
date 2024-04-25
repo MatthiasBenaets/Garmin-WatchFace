@@ -3,6 +3,7 @@ import Toybox.Graphics;
 import Toybox.Lang;
 import Toybox.System;
 import Toybox.WatchUi;
+import Toybox.Complications;
 import Toybox.Time;
 import Toybox.Time.Gregorian;
 import Toybox.ActivityMonitor;
@@ -417,5 +418,31 @@ class WatchView extends WatchUi.WatchFace {
             dc.drawText(x, y, custom16, labels[i], Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
         }
     }
+
+}
+
+class WatchDelegate extends WatchUi.WatchFaceDelegate {
+  
+  function initialize() {
+    WatchFaceDelegate.initialize();
+  }
+
+  public function onPress(clickEvent) {
+    var coords = clickEvent.getCoordinates();
+
+    if (coords[1] < 90) {
+        Complications.exitTo(new Id(Complications.COMPLICATION_TYPE_CURRENT_WEATHER));
+    } else if (coords[1] > 215 && coords[0] < 140) {
+        Complications.exitTo(new Id(Complications.COMPLICATION_TYPE_BODY_BATTERY));
+    } else if (coords[1] > 215 && coords[0] > 140) {
+        Complications.exitTo(new Id(Complications.COMPLICATION_TYPE_HEART_RATE));
+    } else if (coords[1] > 185 && coords[0] < 140) {
+        Complications.exitTo(new Id(Complications.COMPLICATION_TYPE_CALORIES));
+    } else if (coords[1] > 185 && coords[0] > 140) {
+        Complications.exitTo(new Id(Complications.COMPLICATION_TYPE_STEPS));
+    }
+
+    return true;
+  }
 
 }
