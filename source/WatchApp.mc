@@ -1,11 +1,25 @@
 import Toybox.Application;
 import Toybox.Lang;
 import Toybox.WatchUi;
+import Toybox.System;
+import Toybox.Background;
+import Toybox.Position;
+import Toybox.Time;
 
+(:background)
 class WatchApp extends Application.AppBase {
 
     function initialize() {
         AppBase.initialize();
+        var location = Activity.getActivityInfo().currentLocation as Position.Location;
+        if (location != null) {
+            Application.Storage.setValue("location", location.toDegrees() as [Double, Double]);
+        } else {
+            Application.Storage.setValue("location", [50.929391 ,5.337577 ] as [Double, Double]);
+        }
+        if (Toybox.System has :ServiceDelegate) {
+            Background.registerForTemporalEvent(new Time.Duration(5*60));
+        }
     }
 
     // onStart() is called on application start up
@@ -28,7 +42,29 @@ class WatchApp extends Application.AppBase {
 
     function getSettingsView() {
         return [new WatchSettingsMenu(),new WatchSettingsMenuDelegate()];
-    } 
+    }
+
+    function getServiceDelegate() {
+        return [new WatchServiceDelegate()];
+    }
+
+    function onBackgroundData(data) {
+        var weather = data as Dictionary?;
+        var condition = weather["weather"] as Array<Dictionary>;
+        var temperature = weather["main"] as Dictionary;
+        var wind = weather["wind"] as Dictionary;
+        var sun = weather["sys"] as Dictionary;
+        if (data != null) {
+            Application.Storage.setValue("owm", true as Boolean);
+            Application.Storage.setValue("weatherCode", condition[0]["id"] as Number);
+            Application.Storage.setValue("temperature", temperature["temp"] as Numeric);
+            Application.Storage.setValue("temperatureFeel", temperature["feels_like"] as Number);
+            Application.Storage.setValue("windSpeed", wind["speed"] as Float);
+            Application.Storage.setValue("windBearing", wind["deg"] as Number);
+            Application.Storage.setValue("sunset", sun["sunset"] as Number);
+            Application.Storage.setValue("sunrise", sun["sunrise"] as Number);
+        }
+    }
 
 }
 

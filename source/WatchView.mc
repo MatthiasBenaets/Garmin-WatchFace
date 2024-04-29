@@ -10,6 +10,7 @@ import Toybox.ActivityMonitor;
 import Toybox.SensorHistory;
 import Toybox.Weather;
 import Toybox.Position;
+import Toybox.Background;
 
 class WatchView extends WatchUi.WatchFace {
     
@@ -50,23 +51,28 @@ class WatchView extends WatchUi.WatchFace {
         var timeShort = Gregorian.info(Time.now(), Time.FORMAT_SHORT) as Gregorian.Info;
         var timeMedium = Gregorian.info(Time.now(), Time.FORMAT_MEDIUM) as Gregorian.Info;
         var activityInfo = ActivityMonitor.getInfo() as ActivityMonitor.Info;
-        var weatherInfo = Weather.getCurrentConditions() as Weather.CurrentConditions;
+        var locationCoords = Application.Storage.getValue("location") as [Double, Double];
         var location = new Position.Location({
-            :latitude => 50.929391,
-            :longitude => 5.337577,
+            :latitude => locationCoords[0],
+            :longitude => locationCoords[1],
             :format => :degrees
         }) as Position.Location;
-        var locationData = Application.Storage.getValue("location") as [Double, Double];
-        if (locationData != null) {
-            location = new Position.Location({
-                :latitude => locationData[0],
-                :longitude => locationData[1],
-                :format => :degrees
-            }) as Position.Location;
-        }
+        var weatherInfo = Weather.getCurrentConditions() as Weather.CurrentConditions;
+        var sunriseTime;
+        var sunsetTime;
         var currentTime = new Time.Moment(Time.now().value()) as Time.Moment;
-        var sunriseTime = Weather.getSunrise(location, currentTime) as Time.Moment;
-        var sunsetTime = Weather.getSunset(location, currentTime) as Time.Moment;
+        if (Application.Storage.getValue("owm") == true) {
+            weatherInfo.temperature = Application.Storage.getValue("temperature") as Numeric;
+            weatherInfo.feelsLikeTemperature = Application.Storage.getValue("temperatureFeel") as Float;
+            weatherInfo.windSpeed = Application.Storage.getValue("windSpeed") as Float;
+            weatherInfo.windBearing = Application.Storage.getValue("windBearing") as Number;
+            weatherInfo.condition = Application.Storage.getValue("weatherCode") as Number;
+            sunriseTime = new Time.Moment(Application.Storage.getValue("sunrise")) as Moment;
+            sunsetTime = new Time.Moment(Application.Storage.getValue("sunset")) as Moment;
+        } else {
+            sunriseTime = Weather.getSunrise(location, currentTime) as Time.Moment;
+            sunsetTime = Weather.getSunset(location, currentTime) as Time.Moment;
+        }
 
         drawTime(clockTime);
         drawDate(timeShort, timeMedium);
@@ -222,38 +228,47 @@ class WatchView extends WatchUi.WatchFace {
             switch (currentCondition) {
                 // Sun & Moon
                 case 0: case 23: case 40: case 52: case 53:
+                case 800:
                     drawWeatherIcon(dc, width, 0+shift, 0, icon);
                     break;
                 // Cloud
                 case 20:
+                case 803: case 804:
                     drawWeatherIcon(dc, width, 0, 90, icon);
                     break;
                 // Partial Cloud
                 case 1: case 2: case 22:
+                case 801: case 802:
                     drawWeatherIcon(dc, width, 0+shift, 30, icon);
                     break;
                 // Mist
                 case 8: case 9: case 29: case 30: case 31: case 33: case 35: case 37: case 38: case 39:
+                case 701: case 711: case 721: case 731: case 741: case 751: case 761: case 762: case 771: case 781:
                     drawWeatherIcon(dc, width, 0, 180, icon);
                     break;
                 // Hail
                 case 10: case 49: case 50:
+                case 511:
                     drawWeatherIcon(dc, width, 30, 120, icon);
                     break;
                 // Rain
                 case 3: case 11: case 13: case 14: case 15: case 24: case 25: case 26: case 31: case 45:
+                case 301: case 302: case 311: case 312: case 313: case 314: case 321: case 501: case 502: case 503: case 504: case 521: case 522: case 531:
                     drawWeatherIcon(dc, width, 30, 90, icon);
                     break;
                 // Partial Rain
                 case 27: case 28:
+                case 300: case 310: case 500: case 520:
                     drawWeatherIcon(dc, width, 0+shift, 60, icon);
                     break;
                 // Snow
                 case 4: case 7: case 16: case 17: case 18: case 19: case 21: case 34: case 43: case 44: case 46: case 47: case 48: case 51:
+                case 600: case 601: case 602: case 611: case 612: case 613: case 615: case 616: case 620: case 621: case 622:
                     drawWeatherIcon(dc, width, 0, 150, icon);
                     break;
                 // Thunder
                 case 6: case 12: case 32: case 41: case 42:
+                case 200: case 201: case 202: case 210: case 211: case 212: case 221: case 230: case 231: case 232:
                     drawWeatherIcon(dc, width, 0, 120, icon);
                     break;
                 // Wind
