@@ -1,7 +1,19 @@
 <strings>
 
     <string id="AppName">Watch</string>
+    
+    <string id="LatitudeTitle">Latitude</string>
+    
+    <string id="LongitudeTitle">Longitude</string>
+    
+    <string id="FixedLocationTitle">Fixed Location</string>
+
+    <string id="CoordinateError">Not a valid decimal degree</string>
 
     <string id="MilitaryFormatTitle">Military Format for 24 Hour Time</string>
+
+    <string id="OpenWeatherMapTitle">OpenWeatherMap API Token</string>
+    
+    <string id="RefreshRateTitle">OWM Refresh Rate (in min.)</string>
 
   </strings>

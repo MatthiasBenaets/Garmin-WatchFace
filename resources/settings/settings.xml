@@ -1,7 +1,27 @@
 <settings>
+    
+    <setting propertyKey="@Properties.Latitude" title="@Strings.LatitudeTitle">
+        <settingConfig type="numeric" min="-90" max="90" required="true" errorMessage="@Strings.CoordinateError"/>
+    </setting>
 
+    <setting propertyKey="@Properties.Longitude" title="@Strings.LongitudeTitle">
+        <settingConfig type="numeric" min="-180" max="180" required="true" errorMessage="@Strings.CoordinateError"/>
+    </setting>
+    
+    <setting propertyKey="@Properties.FixedLocation" title="@Strings.FixedLocationTitle">
+        <settingConfig type="boolean"/>
+    </setting>
+    
     <setting propertyKey="@Properties.UseMilitaryFormat" title="@Strings.MilitaryFormatTitle">
         <settingConfig type="boolean" />
     </setting>
 
+    <setting propertyKey="@Properties.OpenWeatherMapAPI" title="@Strings.OpenWeatherMapTitle">
+        <settingConfig type="alphaNumeric" />
+    </setting>
+    
+    <setting propertyKey="@Properties.RefreshRateOWM" title="@Strings.RefreshRateTitle">
+        <settingConfig type="numeric" min="5" />
+    </setting>
+    
 </settings>

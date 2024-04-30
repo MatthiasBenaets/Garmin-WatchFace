@@ -13,14 +13,14 @@ class WatchServiceDelegate extends Toybox.System.ServiceDelegate {
 
     (:background_method)
     function onTemporalEvent() {
-        var location = Application.Storage.getValue("location") as [Double, Double];
+        var location = [Application.Properties.getValue("Latitude"), Application.Properties.getValue("Longitude")] as [Double, Double];
 
         var url = "https://api.openweathermap.org/data/2.5/weather" as String;
         var params = {
             "lat" => location[0].toString(),
             "lon" => location[1].toString(),
             "units" => "metric",
-            "appid" => "8bec16072fb2b0ab50af39ac1bed4cfc"
+            "appid" => Application.Properties.getValue("OpenWeatherMapAPI")
         } as Dictionary;
         var options = {
            :method => Communications.HTTP_REQUEST_METHOD_GET,

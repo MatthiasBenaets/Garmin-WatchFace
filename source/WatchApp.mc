@@ -11,14 +11,15 @@ class WatchApp extends Application.AppBase {
 
     function initialize() {
         AppBase.initialize();
-        var location = Activity.getActivityInfo().currentLocation as Position.Location;
-        if (location != null) {
-            Application.Storage.setValue("location", location.toDegrees() as [Double, Double]);
-        } else {
-            Application.Storage.setValue("location", [50.929391 ,5.337577 ] as [Double, Double]);
+        if (!Application.Properties.getValue("FixedLocation")) {
+            var location = Activity.getActivityInfo().currentLocation as Position.Location;
+            if (location != null) {
+                Application.Properties.setValue("Latitude", location.toDegrees()[0] as Double);
+                Application.Properties.setValue("Longitude", location.toDegrees()[1] as Double);
+            }
         }
         if (Toybox.System has :ServiceDelegate) {
-            Background.registerForTemporalEvent(new Time.Duration(5*60));
+            Background.registerForTemporalEvent(new Time.Duration(Application.Properties.getValue("RefreshRateOWM")*60));
         }
     }
 
@@ -63,6 +64,8 @@ class WatchApp extends Application.AppBase {
             Application.Storage.setValue("windBearing", wind["deg"] as Number);
             Application.Storage.setValue("sunset", sun["sunset"] as Number);
             Application.Storage.setValue("sunrise", sun["sunrise"] as Number);
+        } else {
+            Application.Storage.setValue("owm", false as Boolean);
         }
     }
 

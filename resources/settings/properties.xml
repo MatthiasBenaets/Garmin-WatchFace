@@ -1,5 +1,15 @@
 <properties>
 
+    <property id="Latitude" type="float">50.92939</property>
+
+    <property id="Longitude" type="float">5.33758</property>
+
+    <property id="FixedLocation" type="boolean">false</property>
+
     <property id="UseMilitaryFormat" type="boolean">false</property>
+
+    <property id="OpenWeatherMapAPI" type="string"></property>
+    
+    <property id="RefreshRateOWM" type="number">5</property>
 
 </properties>

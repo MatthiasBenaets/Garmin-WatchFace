@@ -21,9 +21,12 @@ class WatchView extends WatchUi.WatchFace {
     var arrowSize = 25;
 
     function initialize() {
-        var location = Activity.getActivityInfo().currentLocation as Position.Location;
-        if (location != null) {
-            Application.Storage.setValue("location", location.toDegrees() as [Double, Double]);
+        if (!Application.Properties.getValue("FixedLocation")) {
+            var location = Activity.getActivityInfo().currentLocation as Position.Location;
+            if (location != null) {
+                Application.Properties.setValue("Latitude", location.toDegrees()[0] as Double);
+                Application.Properties.setValue("Longitude", location.toDegrees()[1] as Double);
+            }
         }
         WatchFace.initialize();
     }
@@ -51,7 +54,7 @@ class WatchView extends WatchUi.WatchFace {
         var timeShort = Gregorian.info(Time.now(), Time.FORMAT_SHORT) as Gregorian.Info;
         var timeMedium = Gregorian.info(Time.now(), Time.FORMAT_MEDIUM) as Gregorian.Info;
         var activityInfo = ActivityMonitor.getInfo() as ActivityMonitor.Info;
-        var locationCoords = Application.Storage.getValue("location") as [Double, Double];
+        var locationCoords = [Application.Properties.getValue("Latitude"), Application.Properties.getValue("Longitude")] as [Double, Double];
         var location = new Position.Location({
             :latitude => locationCoords[0],
             :longitude => locationCoords[1],
@@ -61,7 +64,7 @@ class WatchView extends WatchUi.WatchFace {
         var sunriseTime;
         var sunsetTime;
         var currentTime = new Time.Moment(Time.now().value()) as Time.Moment;
-        if (Application.Storage.getValue("owm") == true) {
+        if (Application.Storage.getValue("owm") == true && "".equals(Application.Properties.getValue("OpenWeatherMapAPI")) == false) {
             weatherInfo.temperature = Application.Storage.getValue("temperature") as Numeric;
             weatherInfo.feelsLikeTemperature = Application.Storage.getValue("temperatureFeel") as Float;
             weatherInfo.windSpeed = Application.Storage.getValue("windSpeed") as Float;
