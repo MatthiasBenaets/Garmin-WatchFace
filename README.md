@@ -36,6 +36,18 @@ This repository is mainly created for future reference on how to implement certa
   - Heart Rate
 - Customization
   - Use Military Time
+  - Update Location
+  - Set Fixed Location
+  - OpenWeatherMap as Weather Provider (API Key req.)
+  - OpenWeatherMap Refresh rate (in min.)
+
+When the OWM API key is empty, incorrect or the public API is not available, the device will fall back to using weather provided by Garmin.
+
+#### Notice
+
+This WatchFace is **NOT** to be uploaded publicly on the ConnectIQ Store. Permission is **NOT** granted.\
+However, feel free to upload it as `Beta App`, so you can manage the settings through the ConnectIQ app.\
+Note that all settings are also editable on the watch in the customization menu. So uploading to the store is not required!
 
 #### References
 
