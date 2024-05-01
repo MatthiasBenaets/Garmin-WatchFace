@@ -21,7 +21,17 @@
     </setting>
     
     <setting propertyKey="@Properties.RefreshRateOWM" title="@Strings.RefreshRateTitle">
-        <settingConfig type="numeric" min="5" />
+        <settingConfig type="list">
+            <listEntry value="5">5</listEntry>
+            <listEntry value="10">10</listEntry>
+            <listEntry value="15">15</listEntry>
+            <listEntry value="30">30</listEntry>
+            <listEntry value="60">60</listEntry>
+            <listEntry value="120">120</listEntry>
+            <listEntry value="240">240</listEntry>
+            <listEntry value="720">720</listEntry>
+            <listEntry value="1440">1440</listEntry>
+        </settingConfig>
     </setting>
     
 </settings>

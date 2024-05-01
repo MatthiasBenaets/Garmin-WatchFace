@@ -3,7 +3,9 @@ import Toybox.Graphics;
 import Toybox.Lang;
 import Toybox.System;
 import Toybox.WatchUi;
+import Toybox.Background;
 
+// Switch WatchUi menu instead of push to auto update menu values (easiest solution)
 class WatchSettingsMenu extends WatchUi.Menu2 {
 
     function initialize() {
@@ -14,7 +16,7 @@ class WatchSettingsMenu extends WatchUi.Menu2 {
 		Menu2.addItem(new WatchUi.MenuItem("Longitude", getProp("Longitude").toString(), "LON", null));
 		Menu2.addItem(new WatchUi.ToggleMenuItem("Fixed Location", null, "FL", getProp("FixedLocation"), null));
 		Menu2.addItem(new WatchUi.MenuItem("OWM API Key", getProp("OpenWeatherMapAPI"), "OWM", null));
-		Menu2.addItem(new WatchUi.MenuItem("OWM Refresh Rate", getProp("RefreshRateOWM").toString(), "RR", null));
+		Menu2.addItem(new WatchUi.MenuItem("OWM Refresh Rate", getProp("RefreshRateOWM").toString() + " min.", "RR", null));
     }
 
 }
@@ -46,9 +48,9 @@ class WatchSettingsMenuDelegate extends WatchUi.Menu2InputDelegate {
             delegate = new StringPickerDelegate(picker, "OpenWeatherMapAPI");
             WatchUi.switchToView(picker, delegate, WatchUi.SLIDE_IMMEDIATE); 
   		} else if (id.equals("RR")) {
-            picker = new StringPicker("RefreshRateOWM", "0123456789");
-            delegate = new StringPickerDelegate(picker, "RefreshRateOWM");
-            WatchUi.switchToView(picker, delegate, WatchUi.SLIDE_IMMEDIATE);
+            picker = new NumberPicker("Refresh Rate", "RefreshRateOWM", [5, 10, 15, 30, 60, 120, 240, 720, 1440]);
+            delegate = new NumberPickerDelegate("RefreshRateOWM");
+            WatchUi.switchToView(picker, delegate, WatchUi.SLIDE_IMMEDIATE); 
         }
   	}
   	
@@ -142,7 +144,7 @@ class StringPickerDelegate extends WatchUi.PickerDelegate {
 
     function onCancel() as Boolean {
         if (picker.getTitleLength() == 0) {
-            WatchUi.popView(WatchUi.SLIDE_IMMEDIATE);
+            WatchUi.switchToView(new WatchSettingsMenu(), new WatchSettingsMenuDelegate(), WatchUi.SLIDE_IMMEDIATE);
         } else {
             picker.removeCharacter();
         }
@@ -177,15 +179,8 @@ class StringPickerDelegate extends WatchUi.PickerDelegate {
                     }
                 } else if (property.equals("OpenWeatherMapAPI")) {
                     Application.Properties.setValue(property, picker.getTitle());
-                } else if (property.equals("RefreshRateOWM")) {
-                    if (picker.getTitle().toNumber() >= 5) {
-                        Application.Properties.setValue(property, picker.getTitle().toNumber() as Number);
-                    } else {
-                        Application.Properties.setValue(property, 5 as Number);
-                    }
                 }
             }
-            // Switch instead of push to auto update menu values
             WatchUi.switchToView(new WatchSettingsMenu(), new WatchSettingsMenuDelegate(), WatchUi.SLIDE_IMMEDIATE);
         }
         return true;
@@ -241,6 +236,101 @@ class CharacterFactory extends WatchUi.PickerFactory {
 
     function isDone(value as String or Number) as Boolean {
         return addSave and (value == DONE);
+    }
+
+}
+
+class NumberPicker extends WatchUi.Picker {
+
+    function initialize(label as String, property as String, optionValues as Array<Number>) {
+        var options = optionValues as Array<Number>;
+        var factory = new NumberFactory(options) as NumberFactory;
+
+        var title = new WatchUi.Text({
+            :text => label,
+            :color => Graphics.COLOR_WHITE,
+            :locX => WatchUi.LAYOUT_HALIGN_CENTER,
+            :locY => WatchUi.LAYOUT_VALIGN_BOTTOM
+        });
+
+        Picker.initialize({
+            :title => title,
+            :pattern => [factory],
+            :defaults => [0]
+        });
+    }
+
+    function onUpdate(dc as Dc) as Void {
+        dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_BLACK);
+        dc.clear();
+        Picker.onUpdate(dc);
+    }
+
+}
+
+class NumberPickerDelegate extends WatchUi.PickerDelegate {
+
+    var property as String;
+
+    function initialize(prop as String) {
+        PickerDelegate.initialize();
+        property = prop as String;
+    }
+
+    function onCancel() as Boolean {
+        WatchUi.switchToView(new WatchSettingsMenu(), new WatchSettingsMenuDelegate(), WatchUi.SLIDE_IMMEDIATE);
+        return true;
+    }
+
+    function onAccept(values) {
+        var selectedValue = values[0] as Number;
+        Application.Properties.setValue(property, selectedValue);
+        if (property.equals("RefreshRateOWM")) {
+            Background.registerForTemporalEvent(new Time.Duration(selectedValue*60));
+        }
+        WatchUi.switchToView(new WatchSettingsMenu(), new WatchSettingsMenuDelegate(), WatchUi.SLIDE_IMMEDIATE);
+        return true;
+    }
+
+}
+
+class NumberFactory extends WatchUi.PickerFactory {
+
+    var options as Array<Number>;
+
+    function initialize(optionValues as Array<Number>) {
+        PickerFactory.initialize();
+        options = optionValues as Array<Number>;
+    }
+
+    function getIndex(value as Number) as Number {
+        var index = options.indexOf(value) as Number;
+        if (index == -1) {
+            return 0;
+        }
+        return index;
+    }
+
+    public function getSize() as Number {
+        return options.size();
+    }
+
+    function getValue(index as Number) as Object? {
+        return options[index % options.size()];
+    }
+
+    function getDrawable(index as Number, selected as Boolean) as Drawable? {
+        var adjustedIndex = index % options.size() as Number;
+        var text = options[adjustedIndex].toString() as String;
+
+        return new WatchUi.Text({
+            :text => text,
+            :color => Graphics.COLOR_WHITE,
+            :font => Graphics.FONT_LARGE,
+            :locX => WatchUi.LAYOUT_HALIGN_CENTER,
+            :locY => WatchUi.LAYOUT_VALIGN_CENTER,
+            :width => System.getDeviceSettings().screenWidth - 1,
+        });
     }
 
 }
