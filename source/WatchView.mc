@@ -64,7 +64,7 @@ class WatchView extends WatchUi.WatchFace {
         var sunriseTime;
         var sunsetTime;
         var currentTime = new Time.Moment(Time.now().value()) as Time.Moment;
-        if (Application.Storage.getValue("owm") == true && "".equals(Application.Properties.getValue("OpenWeatherMapAPI")) == false) {
+        if (Application.Storage.getValue("owm") == true && "".equals(Application.Properties.getValue("OpenWeatherMapAPI")) == false && weatherInfo != null) {
             weatherInfo.temperature = Application.Storage.getValue("temperature") as Numeric;
             weatherInfo.feelsLikeTemperature = Application.Storage.getValue("temperatureFeel") as Float;
             weatherInfo.windSpeed = Application.Storage.getValue("windSpeed") as Float;
@@ -130,7 +130,7 @@ class WatchView extends WatchUi.WatchFace {
     }
 
     private function drawDate(timeShort as Gregorian.Info, timeMedium as Gregorian.Info) as Void {
-        drawLabel("DateLabel").setText(Lang.format("$1$ $2$ $3$ $4$", [timeMedium.day_of_week.toUpper(), timeShort.day, timeMedium.month.toUpper(), timeShort.year % 100]));        
+        drawLabel("DateLabel").setText(Lang.format("$1$ $2$ $3$ $4$", [timeMedium.day_of_week.toUpper(), timeShort.day, timeMedium.month.toUpper(), timeShort.year % 100]));
     }
 
     private function drawSteps(activityInfo as ActivityMonitor.Info) as Void {
@@ -140,7 +140,7 @@ class WatchView extends WatchUi.WatchFace {
     private function drawCalories(activityInfo as ActivityMonitor.Info) as Void {
         drawLabel("CaloriesLabel").setText(activityInfo.calories.format("%d"));
     }
-    
+
     private function drawHeartRate() as Void {
         var value = "-" as String;
         if (ActivityMonitor has :getHeartRateHistory) {
@@ -170,11 +170,15 @@ class WatchView extends WatchUi.WatchFace {
 
     private function drawTemperature(weatherInfo as Weather.CurrentConditions) as Void {
         var value = "-" as String;
-        if ((Toybox has :Weather) && (Weather has :CurrentConditions)) {
+        if ((Toybox has :Weather) && (Weather has :CurrentConditions) && weatherInfo != null) {
             var condition = weatherInfo as Weather.CurrentConditions;
             if (condition != null) {
-                drawLabel("TempLabel").setText(condition.temperature.format("%d") + "°");
-                drawLabel("TempFeelLabel").setText(condition.feelsLikeTemperature.format("%d") + "°"); 
+                if (condition.temperature instanceof Float) {
+                    drawLabel("TempLabel").setText(condition.temperature.format("%d") + "°");
+                } else {
+                    drawLabel("TempLabel").setText("?°");
+                }
+                drawLabel("TempFeelLabel").setText(condition.feelsLikeTemperature.format("%d") + "°");
             }
         } else {
             drawLabel("TempLabel").setText(value + "°");
@@ -184,11 +188,15 @@ class WatchView extends WatchUi.WatchFace {
 
     private function drawWind(weatherInfo as Weather.CurrentConditions) as Void {
         var value = "-" as String;
-        if ((Toybox has :Weather) && (Weather has :CurrentConditions)) {
+        if ((Toybox has :Weather) && (Weather has :CurrentConditions) && weatherInfo != null) {
             var condition = weatherInfo as Weather.CurrentConditions;
             if (condition != null) {
                 drawCardinalDirection(condition);
-                drawLabel("WindSpeedLabel").setText((condition.windSpeed * 3.6).format("%d"));
+                if (condition.windSpeed instanceof Float) {
+                    drawLabel("WindSpeedLabel").setText((condition.windSpeed * 3.6).format("%d"));
+                } else {
+                    drawLabel("WindSpeedLabel").setText("?");
+                }
             }
         } else {
             drawLabel("WindDirLabel").setText(value);
@@ -198,6 +206,12 @@ class WatchView extends WatchUi.WatchFace {
 
     private function drawCardinalDirection(weatherInfo as Weather.CurrentConditions) as Void {
         var direction = weatherInfo.windBearing as Number;
+        if (!(direction instanceof Number)) {
+            direction = 0 as Number;
+        }
+        if (direction < 0 || direction > 359) {
+            direction = 0 as Number;
+        }
         var windDirection = "-";
         if ( direction >= 335 && direction <= 360 || direction >= 0 && direction < 25 ) {
             windDirection = "N";
@@ -222,7 +236,7 @@ class WatchView extends WatchUi.WatchFace {
     }
 
     private function drawWeather(dc as Dc, width as Float, weatherInfo as Weather.CurrentConditions, currentTime as Time.Moment, sunriseTime as Time.Moment, sunsetTime as Time.Moment, icon as Graphics.BitmapType) {
-        if ((Toybox has :Weather) && (Weather has :CurrentConditions)) {
+        if ((Toybox has :Weather) && (Weather has :CurrentConditions) && weatherInfo != null) {
             var currentCondition = weatherInfo.condition as Number;
             var shift = 30;
             if (sunriseTime.lessThan(currentTime) && sunsetTime.greaterThan(currentTime)) {
@@ -293,9 +307,15 @@ class WatchView extends WatchUi.WatchFace {
     }
 
     private function drawWindArrow(dc as Dc, width as Float, weatherInfo as Weather.CurrentConditions, arrowIcon as Graphics.BitmapType) as Void {
-        if ((Toybox has :Weather) && (Weather has :CurrentConditions)) {
+        if ((Toybox has :Weather) && (Weather has :CurrentConditions) && weatherInfo != null) {
             var transform = new Graphics.AffineTransform();
-            var direction = weatherInfo.windBearing as Number;
+            var direction = 0 as Number;
+            if (weatherInfo.windBearing != null && weatherInfo.windBearing instanceof Number) {
+                direction = weatherInfo.windBearing as Number;
+                if (direction < 0 || direction > 359) {
+                    direction = 0 as Number;
+                }
+            }
             var rotation = 0.0174305556 * direction;
             transform.rotate(rotation);
             transform.translate(-arrowSize/2, -arrowSize/2);
@@ -440,7 +460,7 @@ class WatchView extends WatchUi.WatchFace {
 }
 
 class WatchDelegate extends WatchUi.WatchFaceDelegate {
-  
+
   function initialize() {
     WatchFaceDelegate.initialize();
   }
