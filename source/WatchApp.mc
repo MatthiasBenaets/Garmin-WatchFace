@@ -14,8 +14,10 @@ class WatchApp extends Application.AppBase {
         if (!Application.Properties.getValue("FixedLocation")) {
             var location = Activity.getActivityInfo().currentLocation as Position.Location;
             if (location != null) {
-                Application.Properties.setValue("Latitude", location.toDegrees()[0] as Double);
-                Application.Properties.setValue("Longitude", location.toDegrees()[1] as Double);
+                if (!(location.toDegrees()[0].format("%.5f").equals("0.00000") && location.toDegrees()[1].format("%.5f").equals("0.00000"))) {
+                    Application.Properties.setValue("Latitude", location.toDegrees()[0] as Double);
+                    Application.Properties.setValue("Longitude", location.toDegrees()[1] as Double);
+                }
             }
         }
         if (Toybox.System has :ServiceDelegate) {
